@@ -1,0 +1,235 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}
+{% if match %}Edit Match{% else %}Add Match{% endif %} | CricScore Pro
+{% endblock %}
+
+{% block page_title %}
+{% if match %}Edit Match{% else %}Add Match{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-4">
+                    {% if match %}Edit Match{% else %}Create New Match{% endif %}
+                </h4>
+
+                {% if not tournaments %}
+                    <div class="alert alert-warning">
+                        First create a tournament.
+                    </div>
+
+                    <a href="{% url 'tournament_add' %}" class="btn btn-success">
+                        Create Tournament
+                    </a>
+
+                {% elif not teams %}
+                    <div class="alert alert-warning">
+                        First create teams.
+                    </div>
+
+                    <a href="{% url 'team_add' %}" class="btn btn-success">
+                        Add Team
+                    </a>
+
+                {% else %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Tournament</label>
+                        <select name="tournament" id="tournamentSelect" class="form-select" required>
+                            <option value="">Select Tournament</option>
+
+                            {% for tournament in tournaments %}
+                                <option value="{{ tournament.id }}"
+                                    {% if match and match.tournament.id == tournament.id %}selected{% endif %}>
+                                    {{ tournament.name }} - {{ tournament.match_type }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Team A</label>
+                            <select name="team_a" id="teamA" class="form-select" required>
+                                <option value="">Select Team A</option>
+
+                                {% for team in teams %}
+                                    <option value="{{ team.id }}"
+                                            data-tournament="{{ team.tournament.id }}"
+                                            {% if match and match.team_a.id == team.id %}selected{% endif %}>
+                                        {{ team.name }} ({{ team.short_name }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Team B</label>
+                            <select name="team_b" id="teamB" class="form-select" required>
+                                <option value="">Select Team B</option>
+
+                                {% for team in teams %}
+                                    <option value="{{ team.id }}"
+                                            data-tournament="{{ team.tournament.id }}"
+                                            {% if match and match.team_b.id == team.id %}selected{% endif %}>
+                                        {{ team.name }} ({{ team.short_name }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue</label>
+                        <input type="text"
+                               name="venue"
+                               class="form-control"
+                               value="{% if match %}{{ match.venue }}{% endif %}"
+                               placeholder="Example: Lalbhai Contractor Stadium"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Match Date & Time</label>
+                        <input type="datetime-local"
+                               name="match_date"
+                               class="form-control"
+                               value="{% if match %}{{ match.match_date|date:'Y-m-d\\TH:i' }}{% endif %}"
+                               required>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="fw-bold mb-3">Toss Details</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Toss Winner</label>
+                            <select name="toss_winner" id="tossWinner" class="form-select">
+                                <option value="">Select Toss Winner</option>
+
+                                {% for team in teams %}
+                                    <option value="{{ team.id }}"
+                                            data-tournament="{{ team.tournament.id }}"
+                                            {% if match and match.toss_winner and match.toss_winner.id == team.id %}selected{% endif %}>
+                                        {{ team.name }} ({{ team.short_name }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Toss Decision</label>
+                            <select name="toss_decision" class="form-select">
+                                <option value="">Select Decision</option>
+                                <option value="Bat" {% if match and match.toss_decision == 'Bat' %}selected{% endif %}>Bat</option>
+                                <option value="Bowl" {% if match and match.toss_decision == 'Bowl' %}selected{% endif %}>Bowl</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="Upcoming" {% if match and match.status == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                            <option value="Live" {% if match and match.status == 'Live' %}selected{% endif %}>Live</option>
+                            <option value="Completed" {% if match and match.status == 'Completed' %}selected{% endif %}>Completed</option>
+                            <option value="Cancelled" {% if match and match.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+
+                    {% if match %}
+                    <div class="mb-3">
+                        <label class="form-label">Winner</label>
+                        <select name="winner" class="form-select">
+                            <option value="">Select Winner</option>
+
+                            <option value="{{ match.team_a.id }}"
+                                {% if match.winner and match.winner.id == match.team_a.id %}selected{% endif %}>
+                                {{ match.team_a.name }}
+                            </option>
+
+                            <option value="{{ match.team_b.id }}"
+                                {% if match.winner and match.winner.id == match.team_b.id %}selected{% endif %}>
+                                {{ match.team_b.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Result Text</label>
+                        <input type="text"
+                               name="result_text"
+                               class="form-control"
+                               value="{% if match.result_text %}{{ match.result_text }}{% endif %}"
+                               placeholder="Example: Team A won by 20 runs">
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'match_list' %}" class="btn btn-light">
+                            Back
+                        </a>
+
+                        <button type="submit" class="btn btn-success">
+                            {% if match %}Update Match{% else %}Save Match{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function filterTeamsByTournament() {
+        let tournamentId = document.getElementById("tournamentSelect").value;
+
+        let selects = [
+            document.getElementById("teamA"),
+            document.getElementById("teamB"),
+            document.getElementById("tossWinner")
+        ];
+
+        selects.forEach(function(selectBox) {
+            let options = selectBox.querySelectorAll("option");
+
+            options.forEach(function(option) {
+                if (option.value === "") {
+                    option.hidden = false;
+                    return;
+                }
+
+                let optionTournament = option.getAttribute("data-tournament");
+
+                if (!tournamentId || optionTournament === tournamentId) {
+                    option.hidden = false;
+                } else {
+                    option.hidden = true;
+                }
+            });
+        });
+    }
+
+    document.getElementById("tournamentSelect").addEventListener("change", filterTeamsByTournament);
+    filterTeamsByTournament();
+</script>
+
+{% endblock %}

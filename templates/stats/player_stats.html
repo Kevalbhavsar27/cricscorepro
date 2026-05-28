@@ -1,0 +1,173 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}{{ player.name }} Stats{% endblock %}
+{% block page_title %}Player Statistics{% endblock %}
+
+{% block content %}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-5">
+
+        <div class="text-center mb-5">
+
+            {% if player.image %}
+                <img src="{{ player.image.url }}"
+                     width="120"
+                     height="120"
+                     style="border-radius:50%;object-fit:cover;">
+            {% endif %}
+
+            <h2 class="fw-bold mt-3">
+                {{ player.name }}
+            </h2>
+
+            <p class="text-muted">
+                {{ player.team.name }} |
+                {{ player.role }}
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-md-3">
+                <div class="border rounded-4 p-4 text-center">
+                    <h3 class="fw-bold">{{ stats.matches }}</h3>
+                    <p class="text-muted mb-0">Matches</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded-4 p-4 text-center">
+                    <h3 class="fw-bold">{{ stats.runs }}</h3>
+                    <p class="text-muted mb-0">Runs</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded-4 p-4 text-center">
+                    <h3 class="fw-bold">{{ stats.wickets }}</h3>
+                    <p class="text-muted mb-0">Wickets</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded-4 p-4 text-center">
+                    <h3 class="fw-bold">{{ stats.highest_score }}</h3>
+                    <p class="text-muted mb-0">Highest Score</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row g-4 mt-4">
+
+            <div class="col-md-6">
+
+                <div class="card border rounded-4">
+                    <div class="card-body">
+
+                        <h5 class="fw-bold mb-4">
+                            Batting Stats
+                        </h5>
+
+                        <table class="table">
+
+                            <tr>
+                                <th>Innings</th>
+                                <td>{{ stats.innings }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Runs</th>
+                                <td>{{ stats.runs }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Balls</th>
+                                <td>{{ stats.balls }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Strike Rate</th>
+                                <td>{{ stats.strike_rate }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Average</th>
+                                <td>{{ stats.batting_average }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>4s</th>
+                                <td>{{ stats.fours }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>6s</th>
+                                <td>{{ stats.sixes }}</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="card border rounded-4">
+                    <div class="card-body">
+
+                        <h5 class="fw-bold mb-4">
+                            Bowling Stats
+                        </h5>
+
+                        <table class="table">
+
+                            <tr>
+                                <th>Wickets</th>
+                                <td>{{ stats.wickets }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Overs</th>
+                                <td>{{ stats.overs_bowled }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Runs Given</th>
+                                <td>{{ stats.bowling_runs }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Economy</th>
+                                <td>{{ stats.economy }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Bowling Average</th>
+                                <td>{{ stats.bowling_average }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Best Bowling</th>
+                                <td>
+                                    {{ stats.best_bowling_wickets }}/{{ stats.best_bowling_runs }}
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}{{ tournament.name }} Points Table{% endblock %}
+{% block page_title %}Points Table{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">{{ tournament.name }}</h4>
+        <p class="text-muted mb-0">Tournament points table</p>
+    </div>
+
+    <a href="{% url 'points_table_list' %}" class="btn btn-light">
+        Back
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+
+        {% if points_table %}
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>M</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>T</th>
+                        <th>NR</th>
+                        <th>Pts</th>
+                        <th>NRR</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in points_table %}
+                    <tr>
+                        <td>
+                            <strong>#{{ forloop.counter }}</strong>
+                        </td>
+
+                        <td>
+                            <strong>{{ row.team.name }}</strong><br>
+                            <small class="text-muted">{{ row.team.short_name }}</small>
+                        </td>
+
+                        <td>{{ row.matches }}</td>
+                        <td>{{ row.wins }}</td>
+                        <td>{{ row.losses }}</td>
+                        <td>{{ row.ties }}</td>
+                        <td>{{ row.no_results }}</td>
+                        <td>
+                            <strong>{{ row.points }}</strong>
+                        </td>
+                        <td>{{ row.net_run_rate }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+            <h5>No points available yet</h5>
+            <p class="text-muted">Complete matches to generate points table.</p>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Matches | CricScore Pro{% endblock %}
+{% block page_title %}Matches{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">My Matches</h4>
+        <p class="text-muted mb-0">Create and manage cricket matches</p>
+    </div>
+
+    <a href="{% url 'match_add' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add Match
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+
+        {% if matches %}
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Match</th>
+                        <th>Tournament</th>
+                        <th>Venue</th>
+                        <th>Date</th>
+                        <th>Toss</th>
+                        <th>Status</th>
+                        <th>Winner</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for match in matches %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+
+                        <td>
+                            <strong>{{ match.team_a.short_name }} vs {{ match.team_b.short_name }}</strong><br>
+                            <small>{{ match.team_a.name }} vs {{ match.team_b.name }}</small>
+                        </td>
+
+                        <td>{{ match.tournament.name }}</td>
+
+                        <td>{{ match.venue }}</td>
+
+                        <td>{{ match.match_date|date:"d M Y, h:i A" }}</td>
+
+                        <td>
+                            {% if match.toss_winner %}
+                            {{ match.toss_winner.short_name }} chose {{ match.toss_decision }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if match.status == 'Upcoming' %}
+                            <span class="badge bg-warning text-dark">Upcoming</span>
+                            {% elif match.status == 'Live' %}
+                            <span class="badge bg-success">Live</span>
+                            {% elif match.status == 'Completed' %}
+                            <span class="badge bg-primary">Completed</span>
+                            {% else %}
+                            <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+    {% if match.result_text %}
+        <strong>{{ match.result_text }}</strong>
+    {% elif match.winner %}
+        {{ match.winner.short_name }}
+    {% else %}
+        -
+    {% endif %}
+</td>
+
+<td class="text-end">
+    {% if match.status == 'Upcoming' %}
+    <a href="{% url 'match_start' match.id %}" class="btn btn-sm btn-success"
+        onclick="return confirm('Start this match?')">
+        Start
+    </a>
+    {% endif %}
+
+    {% if match.status == 'Live' %}
+    <a href="{% url 'scoring_setup' match.id %}" class="btn btn-sm btn-success">
+        Score
+    </a>
+    {% endif %}
+
+   <a href="{% url 'public_match_score' match.id %}" 
+   class="btn btn-sm btn-outline-success"
+   target="_blank">
+    Public
+</a>
+
+<button class="btn btn-sm btn-outline-dark"
+        onclick="copyLink('{{ request.scheme }}://{{ request.get_host }}{% url 'public_match_score' match.id %}')">
+    Copy
+</button>
+
+<a href="https://wa.me/?text={{ request.scheme }}://{{ request.get_host }}{% url 'public_match_score' match.id %}"
+   target="_blank"
+   class="btn btn-sm btn-success">
+    WhatsApp
+</a>
+
+    <a href="{% url 'match_edit' match.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-pencil"></i>
+    </a>
+
+    <a href="{% url 'match_delete' match.id %}" class="btn btn-sm btn-outline-danger"
+        onclick="return confirm('Delete this match?')">
+        <i class="bi bi-trash"></i>
+    </a>
+</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+            <h5>No match found</h5>
+            <p class="text-muted">Create your first cricket match.</p>
+            <a href="{% url 'match_add' %}" class="btn btn-success">
+                Add Match
+            </a>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+<script>
+function copyLink(link) {
+    navigator.clipboard.writeText(link);
+    alert("Public score link copied!");
+}
+</script>
+{% endblock %}

@@ -1,0 +1,413 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load cricket_filters %}
+
+{% block title %}Live Scoring | CricScore Pro{% endblock %}
+{% block page_title %}Live Scoring{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <div class="col-md-8">
+
+        <!-- Main Score Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold">
+                    {{ innings.match.team_a.short_name }} vs {{ innings.match.team_b.short_name }}
+                </h4>
+
+                <p class="text-muted">
+                    {{ innings.batting_team.name }} batting
+                </p>
+
+                <div class="display-4 fw-bold">
+                    {{ innings.runs }}/{{ innings.wickets }}
+                </div>
+
+                <p class="fs-5">
+                    Overs: {{ innings.overs_display }} |
+                    Run Rate: {{ innings.run_rate }}
+                </p>
+
+                {% if need_new_bowler %}
+                    <div class="alert alert-warning">
+                        Over completed. Please select a new bowler.
+                    </div>
+                {% endif %}
+
+                {% if innings.target %}
+                    <div class="alert alert-info">
+                        Target: {{ innings.target }}
+                    </div>
+                {% endif %}
+
+                {% if innings.is_completed %}
+                    <div class="alert alert-success">
+                        Innings completed.
+                    </div>
+
+                    {% if innings.innings_number == 1 %}
+                        <a href="{% url 'start_second_innings' innings.match.id %}" class="btn btn-primary">
+                            Start 2nd Innings
+                        </a>
+                    {% else %}
+                        <a href="{% url 'finish_match' innings.match.id %}" class="btn btn-success">
+                            Finish Match
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Striker</strong>
+                        <p>{{ innings.striker.name }}</p>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Non-Striker</strong>
+                        <p>{{ innings.non_striker.name }}</p>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Bowler</strong>
+                        <p>{{ innings.current_bowler.name }}</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Batting Scorecard -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Batting Scorecard</h5>
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Batsman</th>
+                                <th>Status</th>
+                                <th>R</th>
+                                <th>B</th>
+                                <th>4s</th>
+                                <th>6s</th>
+                                <th>SR</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for row in batting_scorecard %}
+                            <tr>
+                                <td>{{ row.player.name }}</td>
+                                <td>{{ row.out }}</td>
+                                <td>{{ row.runs }}</td>
+                                <td>{{ row.balls }}</td>
+                                <td>{{ row.fours }}</td>
+                                <td>{{ row.sixes }}</td>
+                                <td>{{ row.runs|strike_rate:row.balls }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    No batting data yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bowling Scorecard -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Bowling Scorecard</h5>
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Bowler</th>
+                                <th>Overs</th>
+                                <th>Runs</th>
+                                <th>Wickets</th>
+                                <th>Economy</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for row in bowling_scorecard %}
+                            <tr>
+                                <td>{{ row.player.name }}</td>
+                                <td>{{ row.balls|balls_to_overs }}</td>
+                                <td>{{ row.runs }}</td>
+                                <td>{{ row.wickets }}</td>
+                                <td>{{ row.runs|economy_rate:row.balls }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    No bowling data yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Need New Bowler Box -->
+        {% if need_new_bowler %}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 text-center">
+                <h4 class="fw-bold">Over Completed</h4>
+                <p class="text-muted">
+                    Please select a new bowler before adding next ball.
+                </p>
+
+                <a href="{% url 'change_bowler' innings.id %}" class="btn btn-success">
+                    Select New Bowler
+                </a>
+            </div>
+        </div>
+
+        <!-- Add Ball Form -->
+        {% elif not innings.is_completed %}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <h5 class="fw-bold mb-3">Add Ball</h5>
+
+                <form method="POST" action="{% url 'add_ball' innings.id %}">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="extra_type" id="extra_type" value="None">
+                    <input type="hidden" name="extra_runs" id="extra_runs" value="0">
+                    <input type="hidden" name="is_wicket" id="is_wicket" value="no">
+
+                    <div class="mb-3">
+                        <label class="form-label">Runs</label>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" name="runs" value="0" class="btn btn-outline-dark score-btn">0</button>
+                            <button type="submit" name="runs" value="1" class="btn btn-outline-dark score-btn">1</button>
+                            <button type="submit" name="runs" value="2" class="btn btn-outline-dark score-btn">2</button>
+                            <button type="submit" name="runs" value="3" class="btn btn-outline-dark score-btn">3</button>
+                            <button type="submit" name="runs" value="4" class="btn btn-outline-success score-btn">4</button>
+                            <button type="submit" name="runs" value="6" class="btn btn-outline-success score-btn">6</button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label">Extras</label>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-warning" onclick="setExtra('Wide', 1)">Wide +1</button>
+                            <button type="button" class="btn btn-outline-warning" onclick="setExtra('No Ball', 1)">No Ball +1</button>
+                            <button type="button" class="btn btn-outline-info" onclick="setExtra('Bye', 1)">Bye +1</button>
+                            <button type="button" class="btn btn-outline-info" onclick="setExtra('Leg Bye', 1)">Leg Bye +1</button>
+                        </div>
+                    </div>
+
+                    <div id="extraBox" class="alert alert-warning d-none">
+                        Extra Selected:
+                        <strong id="extraText"></strong>
+
+                        <button type="button" class="btn btn-sm btn-danger ms-2" onclick="clearExtra()">
+                            Clear
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label">Wicket</label>
+
+                        <div>
+                            <button type="button" class="btn btn-outline-danger" onclick="showWicketBox()">
+                                Add Wicket
+                            </button>
+
+                            <button type="button" class="btn btn-outline-secondary" onclick="hideWicketBox()">
+                                Clear Wicket
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="wicketBox" class="border rounded-3 p-3 mb-3 d-none">
+
+                        <div class="mb-3">
+                            <label class="form-label">Wicket Type</label>
+
+                            <select name="wicket_type" class="form-select">
+                                <option value="Bowled">Bowled</option>
+                                <option value="Caught">Caught</option>
+                                <option value="LBW">LBW</option>
+                                <option value="Run Out">Run Out</option>
+                                <option value="Stumped">Stumped</option>
+                                <option value="Hit Wicket">Hit Wicket</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Out Player</label>
+
+                            <select name="out_player" class="form-select">
+                                <option value="{{ innings.striker.id }}">
+                                    {{ innings.striker.name }}
+                                </option>
+
+                                <option value="{{ innings.non_striker.id }}">
+                                    {{ innings.non_striker.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Batsman</label>
+
+                            <select name="new_batsman" class="form-select">
+                                <option value="">Select New Batsman</option>
+
+                                {% for player in batting_players %}
+                                    {% if player.id != innings.striker.id and player.id != innings.non_striker.id %}
+                                        <option value="{{ player.id }}">{{ player.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <form method="POST" action="{% url 'undo_ball' innings.id %}" class="mt-3">
+                    {% csrf_token %}
+
+                    <button class="btn btn-danger" onclick="return confirm('Undo last ball?')">
+                        Undo Last Ball
+                    </button>
+                </form>
+
+                <form method="POST" action="{% url 'end_innings' innings.id %}" class="mt-3">
+                    {% csrf_token %}
+
+                    <button class="btn btn-warning" onclick="return confirm('End this innings?')">
+                        End Innings
+                    </button>
+                </form>
+
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-md-4">
+
+        <!-- Match Info -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold">Match Info</h5>
+
+                <p>
+                    <strong>Tournament:</strong>
+                    {{ innings.match.tournament.name }}
+                </p>
+
+                <p>
+                    <strong>Venue:</strong>
+                    {{ innings.match.venue }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ innings.match.status }}
+                </p>
+
+                <p>
+                    <strong>Innings:</strong>
+                    {{ innings.innings_number }}
+                </p>
+
+                <a href="{% url 'public_match_score' innings.match.id %}" 
+                   target="_blank"
+                   class="btn btn-outline-success w-100">
+                    View Public Score
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Balls -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Recent Balls</h5>
+
+                {% if balls %}
+                    {% for ball in balls %}
+                        <div class="border-bottom py-2">
+                            <strong>{{ ball.over_number }}.{{ ball.ball_number }}</strong>
+                            — {{ ball.commentary }}
+
+                            <br>
+
+                            <small class="text-muted">
+                                Runs: {{ ball.total_runs }}
+                                {% if ball.is_wicket %}
+                                    | Wicket
+                                {% endif %}
+                            </small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No balls added yet.</p>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function setExtra(type, runs) {
+        document.getElementById("extra_type").value = type;
+        document.getElementById("extra_runs").value = runs;
+
+        document.getElementById("extraBox").classList.remove("d-none");
+        document.getElementById("extraText").innerText = type + " +" + runs;
+    }
+
+    function clearExtra() {
+        document.getElementById("extra_type").value = "None";
+        document.getElementById("extra_runs").value = 0;
+
+        document.getElementById("extraBox").classList.add("d-none");
+    }
+
+    function showWicketBox() {
+        document.getElementById("is_wicket").value = "yes";
+        document.getElementById("wicketBox").classList.remove("d-none");
+    }
+
+    function hideWicketBox() {
+        document.getElementById("is_wicket").value = "no";
+        document.getElementById("wicketBox").classList.add("d-none");
+    }
+</script>
+
+{% endblock %}

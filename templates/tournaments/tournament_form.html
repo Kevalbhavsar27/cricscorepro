@@ -1,0 +1,158 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}
+    {% if tournament %}Edit Tournament{% else %}Add Tournament{% endif %} | CricScore Pro
+{% endblock %}
+
+{% block page_title %}
+    {% if tournament %}Edit Tournament{% else %}Add Tournament{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-4">
+                    {% if tournament %}Edit Tournament{% else %}Create New Tournament{% endif %}
+                </h4>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Tournament Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            value="{% if tournament %}{{ tournament.name }}{% endif %}"
+                            placeholder="Example: Surat Premier League"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input
+                            type="text"
+                            name="location"
+                            class="form-control"
+                            value="{% if tournament %}{{ tournament.location }}{% endif %}"
+                            placeholder="Example: Surat"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Match Type</label>
+
+                        <select
+                            name="match_type"
+                            id="match_type"
+                            class="form-select"
+                            required
+                            onchange="toggleCustomOvers()"
+                        >
+                            <option value="">Select Match Type</option>
+
+                            <option value="T1" {% if tournament.match_type == 'T1' %}selected{% endif %}>T1 - 1 Over</option>
+                            <option value="T2" {% if tournament.match_type == 'T2' %}selected{% endif %}>T2 - 2 Overs</option>
+                            <option value="T5" {% if tournament.match_type == 'T5' %}selected{% endif %}>T5 - 5 Overs</option>
+                            <option value="T10" {% if tournament.match_type == 'T10' %}selected{% endif %}>T10 - 10 Overs</option>
+                            <option value="T20" {% if tournament.match_type == 'T20' %}selected{% endif %}>T20 - 20 Overs</option>
+                            <option value="ODI" {% if tournament.match_type == 'ODI' %}selected{% endif %}>ODI - 50 Overs</option>
+                            <option value="TEST" {% if tournament.match_type == 'TEST' %}selected{% endif %}>Test Match</option>
+                            <option value="CUSTOM" {% if tournament.match_type == 'CUSTOM' %}selected{% endif %}>Custom Overs</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="custom_overs_box" style="display:none;">
+                        <label class="form-label">Custom Overs</label>
+                        <input
+                            type="number"
+                            name="custom_overs"
+                            id="custom_overs"
+                            class="form-control"
+                            value="{% if tournament %}{{ tournament.custom_overs }}{% endif %}"
+                            min="1"
+                            max="100"
+                            placeholder="Example: 8"
+                        >
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input
+                                type="date"
+                                name="start_date"
+                                class="form-control"
+                                value="{% if tournament %}{{ tournament.start_date|date:'Y-m-d' }}{% endif %}"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input
+                                type="date"
+                                name="end_date"
+                                class="form-control"
+                                value="{% if tournament %}{{ tournament.end_date|date:'Y-m-d' }}{% endif %}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Status</label>
+
+                        <select name="status" class="form-select" required>
+                            <option value="Upcoming" {% if tournament.status == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                            <option value="Running" {% if tournament.status == 'Running' %}selected{% endif %}>Running</option>
+                            <option value="Completed" {% if tournament.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'tournament_list' %}" class="btn btn-light">
+                            Back
+                        </a>
+
+                        <button type="submit" class="btn btn-success">
+                            {% if tournament %}Update Tournament{% else %}Save Tournament{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function toggleCustomOvers() {
+        let matchType = document.getElementById("match_type").value;
+        let box = document.getElementById("custom_overs_box");
+        let input = document.getElementById("custom_overs");
+
+        if (matchType === "CUSTOM") {
+            box.style.display = "block";
+            input.required = true;
+        } else {
+            box.style.display = "none";
+            input.required = false;
+            input.value = "";
+        }
+    }
+
+    toggleCustomOvers();
+</script>
+
+{% endblock %}

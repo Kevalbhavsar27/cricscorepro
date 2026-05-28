@@ -1,0 +1,65 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Points Table | CricScore Pro{% endblock %}
+{% block page_title %}Points Table{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Tournament Points Table</h4>
+        <p class="text-muted mb-0">Select tournament to view points table</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+
+        {% if tournaments %}
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tournament</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for tournament in tournaments %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ tournament.name }}</strong></td>
+                        <td>{{ tournament.match_type }}</td>
+                        <td>{{ tournament.status }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'points_table_detail' tournament.id %}" class="btn btn-sm btn-success">
+                                View Points
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+            <h5>No tournament found</h5>
+            <p class="text-muted">Create tournament first.</p>
+            <a href="{% url 'tournament_add' %}" class="btn btn-success">
+                Create Tournament
+            </a>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

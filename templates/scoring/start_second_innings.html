@@ -1,0 +1,81 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Start 2nd Innings | CricScore Pro{% endblock %}
+{% block page_title %}Start 2nd Innings{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-2">
+                    {{ match.team_a.short_name }} vs {{ match.team_b.short_name }}
+                </h4>
+
+                <div class="alert alert-info">
+                    First Innings: {{ first_innings.batting_team.name }}
+                    scored <strong>{{ first_innings.runs }}/{{ first_innings.wickets }}</strong>
+                    in {{ first_innings.overs_display }} overs.
+                    <br>
+                    Target: <strong>{{ first_innings.runs|add:1 }}</strong>
+                </div>
+
+                <h5 class="fw-bold mb-3">
+                    {{ batting_team.name }} Batting
+                </h5>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Striker</label>
+                        <select name="striker" class="form-select" required>
+                            <option value="">Select Striker</option>
+                            {% for player in batting_players %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Non-Striker</label>
+                        <select name="non_striker" class="form-select" required>
+                            <option value="">Select Non-Striker</option>
+                            {% for player in batting_players %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Opening Bowler</label>
+                        <select name="bowler" class="form-select" required>
+                            <option value="">Select Bowler</option>
+                            {% for player in bowling_players %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'match_list' %}" class="btn btn-light">
+                            Back
+                        </a>
+
+                        <button class="btn btn-success">
+                            Start 2nd Innings
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

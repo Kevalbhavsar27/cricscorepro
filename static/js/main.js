@@ -1,0 +1,1 @@
+console.log("CricScore Pro loaded successfully");

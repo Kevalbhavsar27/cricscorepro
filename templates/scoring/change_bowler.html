@@ -1,0 +1,76 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Change Bowler | CricScore Pro{% endblock %}
+{% block page_title %}Change Bowler{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <h4 class="fw-bold mb-2">Over Completed</h4>
+
+                <p class="text-muted">
+                    Select new bowler for next over.
+                </p>
+
+                <div class="alert alert-info">
+                    <strong>Current Score:</strong>
+                    {{ innings.runs }}/{{ innings.wickets }}
+                    in {{ innings.overs_display }} overs
+                </div>
+
+                {% if last_bowler %}
+                    <div class="alert alert-warning">
+                        Last over bowler:
+                        <strong>{{ last_bowler.name }}</strong>
+                        <br>
+                        Same bowler cannot bowl consecutive overs.
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label">Select New Bowler</label>
+
+                        <select name="bowler" class="form-select" required>
+                            <option value="">Choose Bowler</option>
+
+                            {% for player in bowling_players %}
+                                {% if last_bowler and player.id == last_bowler.id %}
+                                    <option value="{{ player.id }}" disabled>
+                                        {{ player.name }} - Last Bowler
+                                    </option>
+                                {% else %}
+                                    <option value="{{ player.id }}">
+                                        {{ player.name }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'scoring_panel' innings.id %}" class="btn btn-light">
+                            Back
+                        </a>
+
+                        <button class="btn btn-success">
+                            Start Next Over
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
